@@ -71,6 +71,9 @@ export class MercadoPagoService {
   }> {
     try {
       const payment = await mpPayment.get({ id: payment_id });
+      console.log(
+        `[Webhook] [Payment ID: ${payment.id}] [Status: ${payment.status}]`
+      );
       return {
         status: payment.status as "approved" | "pending" | "rejected",
       };

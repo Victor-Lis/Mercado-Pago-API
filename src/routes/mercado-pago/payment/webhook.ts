@@ -1,9 +1,4 @@
-import { env } from "@/config/env";
-import { NotAuthorizedError } from "@/errors/not-authorized";
-import {
-  PaymentSignatureSchema,
-  PaymentWebhookSchema,
-} from "@/schemas/mercado-pago/payment/webhook";
+import { PaymentWebhookSchema } from "@/schemas/mercado-pago/payment/webhook";
 import { MercadoPagoService } from "@/services/mercado-pago-service";
 import { FastifyTypedInstance } from "@/types/fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -18,10 +13,6 @@ export function paymentWebhook(app: FastifyTypedInstance) {
         description:
           "Este endpoint é chamado pelo Mercado Pago sempre que o status de um pagamento é alterado.",
         tags: ["Payment", "Webhook"],
-        // querystring: z.object({
-        //   "data.id": z.string().optional(),
-        //   type: z.string().optional(),
-        // }),
         body: PaymentWebhookSchema,
         response: {
           200: z.object({
@@ -35,15 +26,13 @@ export function paymentWebhook(app: FastifyTypedInstance) {
       },
     },
     async (request, reply) => {
-      const { id, type } = request.body;
-
-      console.log(`[Webhook] Payment id: ${id}`);
+      const {
+        data: { id: payment_id },
+      } = request.body;
 
       const { status } = await MercadoPagoService.getPaymentStatus({
-        payment_id: id,
+        payment_id,
       });
-
-      console.log(`[Webhook] Payment status: ${status}`);
 
       return reply.status(200).send({
         message: "Webhook recebido e processado com sucesso.",
