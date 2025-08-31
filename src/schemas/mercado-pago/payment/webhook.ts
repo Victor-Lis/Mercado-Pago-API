@@ -17,3 +17,10 @@ export const PaymentWebhookSchema = z.object({
 });
 
 export type PaymentWebhookType = z.infer<typeof PaymentWebhookSchema>;
+
+export const PaymentSignatureSchema = z.object({
+  "x-signature": z.string().meta({ example: "ts=...,v1=..." }),
+  "x-request-id": z.string().meta({ example: "unique-request-id" }),
+});
+
+export type PaymentSignatureType = z.infer<typeof PaymentSignatureSchema>;

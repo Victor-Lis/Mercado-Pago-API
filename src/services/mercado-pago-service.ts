@@ -4,6 +4,8 @@ import { mpPayment, mpPreference } from "@/lib/mercado-pago";
 import { CreatePreferenceType } from "@/schemas/mercado-pago/preference/create";
 import { GetPaymentType } from "@/schemas/mercado-pago/payment/get";
 import { GetPreferenceType } from "@/schemas/mercado-pago/preference/get";
+import crypto from "crypto";
+import { InvalidSignature } from "@/errors/invalid-signature";
 
 export class MercadoPagoService {
   static async createPayment({
@@ -33,9 +35,9 @@ export class MercadoPagoService {
           default_payment_method_id: "pix",
         },
         back_urls: {
-          success: `${env.MERCADO_PAGO_PAYMENTS_URL}payment/success`,
-          failure: `${env.MERCADO_PAGO_PAYMENTS_URL}payment/failure`,
-          pending: `${env.MERCADO_PAGO_PAYMENTS_URL}payment/pending`,
+          success: `/payment/success`,
+          failure: `/payment/failure`,
+          pending: `/payment/pending`,
         },
       },
     });
@@ -48,17 +50,18 @@ export class MercadoPagoService {
   }
 
   static async getPreference({
-    payment_id,
-  }: Pick<GetPreferenceType, "payment_id">): Promise<{
+    preference_id,
+  }: Pick<GetPreferenceType, "preference_id">): Promise<{
     payment: any;
   }> {
-    const payment = await mpPayment.get({ id: payment_id });
-
-    if (!payment) throw new NotFoundError();
-
-    return {
-      payment,
-    };
+    try {
+      const payment = await mpPreference.get({ preferenceId: preference_id });
+      return {
+        payment,
+      };
+    } catch {
+      throw new NotFoundError();
+    }
   }
 
   static async getPaymentStatus({
@@ -66,12 +69,38 @@ export class MercadoPagoService {
   }: Pick<GetPaymentType, "payment_id">): Promise<{
     status: "approved" | "pending" | "rejected";
   }> {
-    const payment = await mpPayment.get({ id: payment_id });
+    try {
+      const payment = await mpPayment.get({ id: payment_id });
+      return {
+        status: payment.status as "approved" | "pending" | "rejected",
+      };
+    } catch {
+      throw new NotFoundError();
+    }
+  }
 
-    if (!payment || !payment.status) throw new NotFoundError();
+  static validateSignature({
+    signatureHeader,
+    manifest,
+  }: {
+    signatureHeader: string;
+    manifest: string;
+  }): boolean {
+    const parts = signatureHeader.split(",");
+    const ts = parts.find((p) => p.startsWith("ts="))?.split("=")[1];
+    const hash = parts.find((p) => p.startsWith("v1="))?.split("=")[1];
 
-    return {
-      status: payment.status as "approved" | "pending" | "rejected",
-    };
+    if (!ts || !hash) throw new InvalidSignature();
+
+    const secret = env.MERCADO_PAGO_WEBHOOK_SECRET;
+    manifest += `ts:${ts};`;
+
+    const hmac = crypto.createHmac("sha256", secret);
+    hmac.update(manifest);
+    const expectedHash = hmac.digest("hex");
+
+    if (expectedHash !== hash) throw new InvalidSignature();
+
+    return true;
   }
 }
