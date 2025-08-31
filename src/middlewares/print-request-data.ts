@@ -4,10 +4,6 @@ export async function printRequestData(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const clientOrigin =
-    request.headers.origin ||
-    request.headers.referer ||
-    request.headers["user-agent"] ||
-    "Unknown";
-  console.log(`[ ${request.method} ] ${request.url} | Client: ${clientOrigin}`);
+  const fullUrl = `${request.protocol}://${request.headers.host}${request.url}`;
+  console.log(`[ ${request.method} ] ${fullUrl}`);
 }
