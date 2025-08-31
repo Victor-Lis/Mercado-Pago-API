@@ -1,10 +1,9 @@
 import { env } from "@/config/env";
 import { NotFoundError } from "@/errors/not-found";
 import { mpPayment, mpPreference } from "@/lib/mercado-pago";
-import { CreatePreferenceType } from "@/schemas/mercado-pago/preference/create-preference";
-import { GetPaymentType } from "@/schemas/mercado-pago/payment/get-payment";
-import { GetPreferenceType } from "@/schemas/mercado-pago/preference/get-preference";
-import { PreferenceResponse } from "mercadopago/dist/clients/preference/commonTypes";
+import { CreatePreferenceType } from "@/schemas/mercado-pago/preference/create";
+import { GetPaymentType } from "@/schemas/mercado-pago/payment/get";
+import { GetPreferenceType } from "@/schemas/mercado-pago/preference/get";
 
 export class MercadoPagoService {
   static async createPayment({
@@ -30,10 +29,13 @@ export class MercadoPagoService {
         //   ],
         //   installments: 1,
         // },
+        payment_methods: {
+          default_payment_method_id: "pix",
+        },
         back_urls: {
-          success: `${env.MERCADO_PAGO_PAYMENTS_URL}/success`,
-          failure: `${env.MERCADO_PAGO_PAYMENTS_URL}/failure`,
-          pending: `${env.MERCADO_PAGO_PAYMENTS_URL}/pending`,
+          success: `${env.MERCADO_PAGO_PAYMENTS_URL}payment/success`,
+          failure: `${env.MERCADO_PAGO_PAYMENTS_URL}payment/failure`,
+          pending: `${env.MERCADO_PAGO_PAYMENTS_URL}payment/pending`,
         },
       },
     });
@@ -46,16 +48,16 @@ export class MercadoPagoService {
   }
 
   static async getPreference({
-    preferenceId,
-  }: Pick<GetPreferenceType, "preferenceId">): Promise<{
-    preference: PreferenceResponse;
+    payment_id,
+  }: Pick<GetPreferenceType, "payment_id">): Promise<{
+    payment: any;
   }> {
-    const preference = await mpPreference.get({ preferenceId });
+    const payment = await mpPayment.get({ id: payment_id });
 
-    if (!preference) throw new NotFoundError();
+    if (!payment) throw new NotFoundError();
 
     return {
-      preference,
+      payment,
     };
   }
 

@@ -1,4 +1,5 @@
 import { env } from "@/config/env";
+import { ngrokInstance } from "@/lib/ngrok";
 
 import cors from "@fastify/cors";
 import fastify from "fastify";
@@ -43,7 +44,7 @@ app.register(fastifySwagger, {
 app.setErrorHandler(errorHandler);
 
 app.register(fastifySwaggerUI, {
-  routePrefix: "/docs",
+  routePrefix: "/",
   theme: {
     css: [{ filename: "theme.css", content: content }],
   },
@@ -58,6 +59,7 @@ app.register((app) => {
   app.register(MercadoPagoRoutes, { prefix: "/payment" });
 });
 
-app.listen({ port: env.PORT, host: "0.0.0.0" }).then(() => {
+app.listen({ port: env.PORT, host: "0.0.0.0" }).then(async () => {
   console.log("Server running on port " + env.PORT);
+  console.log("Ngrok URL: " + ((await ngrokInstance).url()));
 });

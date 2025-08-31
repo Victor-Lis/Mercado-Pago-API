@@ -16,6 +16,7 @@
     "@fastify/cors": "^11.1.0",
     "@fastify/swagger": "^9.5.1",
     "@fastify/swagger-ui": "^5.2.3",
+    "@ngrok/ngrok": "^1.5.2",
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
     "fastify-type-provider-zod": "^5.0.3",
