@@ -105,6 +105,7 @@ Tutoriais detalhados estarão disponíveis em arquivos README específicos para 
 
 - [Configuração do Ngrok](./docs/ngrok.md)
 - [Integração com a API do Mercado Pago](./docs/mercado-pago.md)
+- [Realizando um pagamento](./docs/realizando-pagamento.md)
 
 ---
 
