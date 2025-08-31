@@ -24,7 +24,11 @@ RUN pnpm build
 # Estágio de Produção (Runner)
 # ==============================================================================
 FROM base AS runner
+# Define um argumento que pode ser passado durante o build (pelo docker-compose)
+ARG PORT=3000
+# Define as variáveis de ambiente para o container em execução
 ENV NODE_ENV=production
+ENV PORT=${PORT}
 WORKDIR /app
 
 # Cria um usuário e grupo não-root para segurança
@@ -40,15 +44,6 @@ COPY --from=builder /app/dist ./dist
 # Muda para o usuário não-root
 USER appuser
 
-EXPOSE 3030
+# Expõe a porta definida pela variável de ambiente
+EXPOSE ${PORT}
 CMD ["pnpm", "start"]
-
-# ==============================================================================
-# Estágio de Desenvolvimento
-# ==============================================================================
-FROM deps AS dev
-# Copia o resto do código (será sobreposto pelo volume)
-COPY . .
-EXPOSE 3030
-# O comando será fornecido pelo docker-compose
-CMD ["pnpm", "dev"]

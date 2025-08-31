@@ -6,10 +6,18 @@ services:
       - 8.8.4.4
     build:
       context: ./
-    env_file:
-      - ./.env
+      args:
+        - PORT=${PORT}
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - MERCADO_PAGO_ACCESS_TOKEN=${MERCADO_PAGO_ACCESS_TOKEN}
+      - MERCADO_PAGO_WEBHOOK_URL=${MERCADO_PAGO_WEBHOOK_URL}
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - MERCADO_PAGO_WEBHOOK_SECRET=${MERCADO_PAGO_WEBHOOK_SECRET}
+      - NGROK_STATIC_DOMAIN=${NGROK_STATIC_DOMAIN}
     ports:
-      - "3030:3030"
+      - "3030:${PORT}"
     restart: unless-stopped
     networks:
       - local-network
