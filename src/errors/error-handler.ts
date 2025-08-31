@@ -10,6 +10,7 @@ type FastifyErrorHandler = FastifyInstance["errorHandler"];
 
 export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
   console.error("Erro capturado:", error);
+
   if (error instanceof ZodError) {
     return reply.status(400).send({
       message: "Invalid Input",
@@ -47,10 +48,19 @@ export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
   }
 
   if (error instanceof NotFoundError) {
-    return reply.status(400).send({
+    return reply.status(404).send({
       message: error.message,
       details: {
-        issues: error.validation,
+        method: request.method,
+        url: request.url,
+      },
+    });
+  }
+
+  if ((error as any).error === "resource not found") {
+    return reply.status(404).send({
+      message: "Resource not found",
+      details: {
         method: request.method,
         url: request.url,
       },
