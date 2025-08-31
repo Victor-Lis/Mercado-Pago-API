@@ -1,0 +1,19 @@
+services:
+  mercado-pago-nodejs:
+    container_name: mercado-pago
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    build:
+      context: ./
+    env_file:
+      - ./.env
+    ports:
+      - "3030:3030"
+    restart: unless-stopped
+    networks:
+      - local-network
+
+networks:
+  local-network:
+    driver: bridge
