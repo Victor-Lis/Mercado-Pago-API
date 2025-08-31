@@ -1,4 +1,5 @@
-import { PaymentWebhookSchema } from "@/schemas/mercado-pago/payment/webhook";
+import { NotAuthorizedError } from "@/errors/not-authorized";
+import { PaymentSignatureSchema, PaymentWebhookSchema } from "@/schemas/mercado-pago/payment/webhook";
 import { MercadoPagoService } from "@/services/mercado-pago-service";
 import { FastifyTypedInstance } from "@/types/fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -29,6 +30,17 @@ export function paymentWebhook(app: FastifyTypedInstance) {
       const {
         data: { id: payment_id },
       } = request.body;
+
+      const { "x-signature": signatureHeader } = PaymentSignatureSchema.parse(
+        request.headers
+      );
+
+      const isValid = MercadoPagoService.validateSignature({
+        signatureHeader: signatureHeader || "",
+        manifest: `id:${request.body.data.id};request-id:${request.headers["x-request-id"]};`,
+      });
+
+      if (!isValid) throw new NotAuthorizedError("Invalid signature");
 
       const { status } = await MercadoPagoService.getPaymentStatus({
         payment_id,
